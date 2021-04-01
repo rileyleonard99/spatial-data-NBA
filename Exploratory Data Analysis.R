@@ -22,6 +22,8 @@ lillard <- read_csv( "/home/leonardr/Spatial Data NBA/Data/lillard.csv")
 
 # Each covariate (distance, defender distance, dribbles, shot clock, touch time) as raster over space 
 
+# How do x and y (location) affect relationships between predictors and response (FG %)
+
 ## Inference
 
 # Perform MLR
