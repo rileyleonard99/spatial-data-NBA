@@ -5,10 +5,31 @@ library(tidyverse)
 
 ## Load Data
 lillard <- read_csv( "/home/leonardr/Spatial Data NBA/Data/lillard.csv")
+data <- read_csv( "/home/leonardr/Spatial Data NBA/Data/shot_data.csv")
+
+## Recode Variables
+
+data <- data %>%
+  filter(shot_distance < 47) %>%
+  mutate(shot_outcome = as_factor(shot_made_flag))
 
 ## Scatterplots
 
 # Distance vs. FG %
+
+ggplot(data,
+       aes(x = shot_distance,
+           y = shot_outcome)) +
+  geom_jitter(alpha = 0.1, aes(color = shot_outcome)) +
+  labs(x = "Shot Distance (ft)",
+       y = "Shot Outcome") +
+  scale_color_manual(name = " ", 
+                     labels = c("Miss", "Make"), 
+                     values = c("0" = "palevioletred2", "1" = "deepskyblue")) + 
+  theme_classic()
+
+cor(data$shot_distance,
+    data$shot_made_flag)
 
 # Defender distance vs. FG %
 
@@ -41,3 +62,5 @@ lillard <- read_csv( "/home/leonardr/Spatial Data NBA/Data/lillard.csv")
 # Residuals as value over expected!
 
 # Risk as mean variance in expected points!
+
+# Logistic regression to calculate expected FG%
