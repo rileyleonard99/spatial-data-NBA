@@ -6,6 +6,24 @@ library(tidyverse)
 ## Load Data
 lillard <- read_csv( "/home/leonardr/Spatial Data NBA/Data/lillard.csv")
 data <- read_csv( "/home/leonardr/Spatial Data NBA/Data/shot_data.csv")
+# Limited to 50,000 observations (pull by date range and rbind!)
+
+## Player Summary Data
+
+summary_data <- data %>%
+  group_by(name) %>%
+  summarize(avg_dist = mean(shot_distance),
+            avg_dribbles = mean(dribbles),
+            avg_touch_time = mean(touch_time),
+            avg_defender = mean(defender_distance),
+            fg = sum(shot_made_flag == 1),
+            fga = (sum(shot_made_flag == 0)) + sum(shot_made_flag == 1),
+            pct = fg/fga)
+
+summary_data <- summary_data %>%
+  filter(fga >= 100)
+
+
 
 ## Recode Variables
 
@@ -13,9 +31,13 @@ data <- data %>%
   filter(shot_distance < 47) %>%
   mutate(shot_outcome = as_factor(shot_made_flag))
 
+lillard <- lillard %>%
+  filter(shot_distance < 47) %>%
+  mutate(shot_outcome = as_factor(shot_made_flag))
+
 ## Scatterplots
 
-# Distance vs. FG %
+# Distance vs. Outcome
 
 ggplot(data,
        aes(x = shot_distance,
@@ -30,6 +52,31 @@ ggplot(data,
 
 cor(data$shot_distance,
     data$shot_made_flag)
+
+
+# Average Distance vs. FG %
+
+ggplot(summary_data,
+       aes(x = avg_dist,
+           y = pct)) +
+  geom_point(size = 2, alpha = 0.5, color = "darkorange") +
+  labs(x = "Average Shot Distance (ft)",
+       y = "Field Goal %") +
+  theme_classic()
+
+cor(summary_data$avg_dist,
+    summary_data$pct)
+
+## Shot Chart Example (Lillard)
+
+ggplot(lillard,
+       aes(x = x,
+           y = y)) +
+  geom_jitter(alpha = 0.5, aes(color = shot_outcome)) +
+  scale_color_manual(name = " ", 
+                     labels = c("Miss", "Make"), 
+                     values = c("0" = "palevioletred2", "1" = "deepskyblue")) + 
+  theme_classic()
 
 # Defender distance vs. FG %
 
