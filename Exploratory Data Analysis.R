@@ -2,11 +2,16 @@
 
 ## Packages
 library(tidyverse)
+library(sp)
+library(raster)
 
 ## Load Data
 lillard <- read_csv( "/home/leonardr/Spatial Data NBA/Data/lillard.csv")
+
 data <- read_csv( "/home/leonardr/Spatial Data NBA/Data/shot_data.csv")
+
 # Limited to 50,000 observations (pull by date range and rbind!)
+
 
 ## Player Summary Data
 
@@ -24,7 +29,6 @@ summary_data <- summary_data %>%
   filter(fga >= 100)
 
 
-
 ## Recode Variables
 
 data <- data %>%
@@ -34,6 +38,7 @@ data <- data %>%
 lillard <- lillard %>%
   filter(shot_distance < 47) %>%
   mutate(shot_outcome = as_factor(shot_made_flag))
+
 
 ## Scatterplots
 
@@ -67,6 +72,20 @@ ggplot(summary_data,
 cor(summary_data$avg_dist,
     summary_data$pct)
 
+# Average Dribbles vs. FG %
+
+ggplot(summary_data,
+       aes(x = avg_dribbles,
+           y = pct)) +
+  geom_point(size = 2, alpha = 0.5, color = "darkorange") +
+  labs(x = "Average Dribbles",
+       y = "Field Goal %") +
+  theme_classic()
+
+cor(summary_data$avg_dribbles,
+    summary_data$pct)
+
+
 ## Shot Chart Example (Lillard)
 
 ggplot(lillard,
@@ -77,6 +96,35 @@ ggplot(lillard,
                      labels = c("Miss", "Make"), 
                      values = c("0" = "palevioletred2", "1" = "deepskyblue")) + 
   theme_classic()
+
+
+## Shot Chart Raster (Lillard)
+
+lillard_pts <- lillard %>%
+  dplyr::select(x, y, shot_distance, dribbles, touch_time, defender_distance, shot_made_flag)
+
+lillard_short <- lillard %>%
+  dplyr::select(shot_distance, dribbles, touch_time, defender_distance, shot_made_flag)
+
+pts <- SpatialPoints(c(lillard_pts[ ,1], lillard_pts[ ,2]))
+
+spLillard <- SpatialPointsDataFrame(pts, data = lillard_short)
+
+r <- raster(spLillard)
+res(r) <- 5
+f <- rasterize(spLillard, r)
+plot(f)
+
+
+## Heat Map (Lillard)
+
+r2 <- raster(spLillard)
+res(r2) <- 20
+f2 <- rasterize(spLillard, r2)
+heat <- rasterize(spLillard, f2, fun = 'count', background = 0)
+plot(heat)
+plot(spLillard, add=TRUE)
+
 
 # Defender distance vs. FG %
 
