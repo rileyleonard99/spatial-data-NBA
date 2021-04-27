@@ -123,7 +123,7 @@ res(r2) <- 20
 f2 <- rasterize(spLillard, r2)
 heat <- rasterize(spLillard, f2, fun = 'count', background = 0)
 plot(heat)
-plot(spLillard, add=TRUE)
+plot(spLillard, add = TRUE)
 
 
 # Defender distance vs. FG %
