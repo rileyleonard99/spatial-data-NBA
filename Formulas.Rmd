@@ -17,6 +17,6 @@ Effective Field Goal Percentage:
 
 $eFG\% = \frac{FG + (0.5 \cdot 3P)}{FGA}$
 
-Field Goal Percentage:
+True Shooting Percentage:
 
 $TS\% = \frac{PTS}{2(FGA + (0.44 \cdot FTA))}$
