@@ -159,3 +159,7 @@ plot(spLillard, add = TRUE)
 # Risk as mean variance in expected points!
 
 # Logistic regression to calculate expected FG%
+
+# Measure FG% versus expFG%
+
+# spFG% = FG% * spatial modifier

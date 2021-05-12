@@ -1,0 +1,22 @@
+---
+title: "Formulas"
+author: "Riley Leonard"
+date: "5/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Field Goal Percentage:
+
+$FG\% = \frac{FG}{FGA}$
+
+Effective Field Goal Percentage:
+
+$eFG\% = \frac{FG + (0.5 \cdot 3P)}{FGA}$
+
+Field Goal Percentage:
+
+$TS\% = \frac{PTS}{2(FGA + (0.44 \cdot FTA))}$
