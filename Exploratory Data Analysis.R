@@ -6,11 +6,11 @@ library(sp)
 library(raster)
 
 ## Load Data
-lillard <- read_csv( "/home/leonardr/Spatial Data NBA/Data/lillard.csv")
+lillard <- read_csv("/home/leonardr/Spatial Data NBA/Data/lillard.csv")
 
-data <- read_csv( "/home/leonardr/Spatial Data NBA/Data/shot_data.csv")
+data <- read_csv("/home/leonardr/Spatial Data NBA/Data/shot_data.csv")
 
-# Limited to 50,000 observations (pull by date range and rbind!)
+data1 <- read_csv("/home/leonardr/Spatial Data NBA/Data/shots1.csv")
 
 
 ## Player Summary Data
