@@ -47,7 +47,7 @@ lillard <- lillard %>%
 ggplot(data,
        aes(x = shot_distance,
            y = shot_outcome)) +
-  geom_jitter(alpha = 0.1, aes(color = shot_outcome)) +
+  geom_jitter(alpha = 0.3, aes(color = shot_outcome)) +
   labs(x = "Shot Distance (ft)",
        y = "Shot Outcome") +
   scale_color_manual(name = " ", 
