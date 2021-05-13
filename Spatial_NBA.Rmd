@@ -1,0 +1,366 @@
+---
+title: "Spatial NBA"
+author: "Riley Leonard"
+date: "5/12/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(sp)
+library(sf)
+library(raster)
+library(maptools)
+library(kableExtra)
+library(stargazer)
+```
+
+```{r}
+pacman::p_load(spdep, maps, spData, spatstat, maptools)
+```
+
+
+## Load Data
+
+```{r}
+data1 <- read_csv("/home/leonardr/Spatial Data NBA/Data/shots1.csv")
+data2 <- read_csv("/home/leonardr/Spatial Data NBA/Data/shots2.csv")
+data3 <- read_csv("/home/leonardr/Spatial Data NBA/Data/shots3.csv")
+data4 <- read_csv("/home/leonardr/Spatial Data NBA/Data/shots4.csv")
+data5 <- read_csv("/home/leonardr/Spatial Data NBA/Data/shots5.csv")
+data6 <- read_csv("/home/leonardr/Spatial Data NBA/Data/shots6.csv")
+
+data <- rbind(data1, data2, data3, data4, data5, data6)
+
+data <- data %>%
+  dplyr::select(x, y, name, team_name, period, minutes_remaining, 
+                seconds_remaining, shot_made_flag, shot_distance, 
+                dribbles, touch_time, defender_distance, shot_clock)
+         
+lillard <- read_csv("/home/leonardr/Spatial Data NBA/Data/lillard.csv")
+
+gobert <- read_csv("/home/leonardr/Spatial Data NBA/Data/gobert.csv")
+```
+
+
+## Wrangling
+
+```{r}
+data <- data %>%
+  filter(shot_distance < 47) %>%
+  mutate(shot_outcome = as_factor(shot_made_flag))
+
+lillard <- lillard %>%
+  filter(shot_distance < 47) %>%
+  mutate(shot_outcome = as_factor(shot_made_flag)) %>%
+  drop_na()
+
+gobert <- gobert %>%
+  filter(shot_distance < 47) %>%
+  mutate(shot_outcome = as_factor(shot_made_flag)) %>%
+  drop_na()
+
+```
+
+
+## Lillard
+
+```{r, fig.height=6, fig.width=8}
+ggplot(lillard,
+       aes(x = x,
+           y = y)) +
+  geom_jitter(alpha = 0.5, aes(color = shot_outcome)) +
+  scale_color_manual(name = " ", 
+                     labels = c("Miss", "Make"), 
+                     values = c("0" = "palevioletred2", "1" = "deepskyblue")) + 
+  ggtitle("Damian Lillard Shot Chart") +
+  theme_classic()
+```
+
+## Density
+
+```{r, fig.height=6, fig.width=8}
+ggplot(lillard,
+       aes(x = x,
+           y = y)) +
+  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+  scale_fill_distiller(palette = "Spectral", direction = -1) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(legend.position='none') +
+  ggtitle("Damian Lillard Density Plot") +
+  theme_classic()
+```
+
+
+## Gobert
+
+```{r, fig.height=6, fig.width=8}
+ggplot(gobert,
+       aes(x = x,
+           y = y)) +
+  geom_jitter(alpha = 0.5, aes(color = shot_outcome)) +
+  scale_color_manual(name = " ", 
+                     labels = c("Miss", "Make"), 
+                     values = c("0" = "palevioletred2", "1" = "deepskyblue")) + 
+  ggtitle("Rudy Gobert Shot Chart") +
+  theme_classic()
+```
+
+## Density
+
+```{r, fig.height=6, fig.width=8}
+ggplot(gobert,
+       aes(x = x,
+           y = y)) +
+  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+  scale_fill_distiller(palette = "Spectral", direction = -1) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(legend.position='none') +
+  coord_cartesian(xlim =c(-100, 100)) +
+  ggtitle("Rudy Gobert Density Plot") +
+  theme_classic()
+```
+
+
+## Summary Data
+
+```{r}
+summary_data <- data %>%
+  group_by(name) %>%
+  summarize(avg_dist = mean(shot_distance),
+            avg_dribbles = mean(dribbles),
+            avg_touch_time = mean(touch_time),
+            avg_defender = mean(defender_distance),
+            avg_clock = mean(shot_clock),
+            fg = sum(shot_made_flag == 1),
+            fga = (sum(shot_made_flag == 0)) + sum(shot_made_flag == 1),
+            pct = fg/fga)
+
+summary_data <- summary_data %>%
+  filter(fga >= 100)
+```
+
+
+## Scatterplots
+
+```{r, fig.height=4, fig.width=6}
+# Average Distance vs. FG %
+
+ggplot(summary_data,
+       aes(x = avg_dist,
+           y = pct)) +
+    geom_smooth(method = lm,
+              color = "grey60",
+              alpha = 0.3) +
+  geom_point(size = 2, alpha = 0.5, color = "darkorange") +
+  labs(x = "Average Shot Distance (ft)",
+       y = "Field Goal %") +
+  theme_classic()
+
+cor(summary_data$avg_dist,
+    summary_data$pct)
+```
+
+```{r, fig.height=4, fig.width=6}
+# Dribbles vs. FG %
+
+ggplot(summary_data,
+       aes(x = avg_dribbles,
+           y = pct)) +
+    geom_smooth(method = lm,
+              color = "grey60",
+              alpha = 0.3) +
+  geom_point(size = 2, alpha = 0.5, color = "darkorange") +
+  labs(x = "Average Dribbles",
+       y = "Field Goal %") +
+  theme_classic()
+
+cor(summary_data$avg_dribbles,
+    summary_data$pct)
+```
+
+```{r, fig.height=4, fig.width=6}
+# Touch Time vs. FG %
+
+ggplot(summary_data,
+       aes(x = avg_touch_time,
+           y = pct)) +
+    geom_smooth(method = lm,
+              color = "grey60",
+              alpha = 0.3) +
+  geom_point(size = 2, alpha = 0.5, color = "darkorange") +
+  labs(x = "Average Touch Time (sec)",
+       y = "Field Goal %") +
+  theme_classic()
+
+cor(summary_data$avg_touch_time,
+    summary_data$pct)
+```
+
+```{r, fig.height=4, fig.width=6}
+# Touch Time vs. FG %
+
+ggplot(summary_data,
+       aes(x = avg_defender,
+           y = pct)) +
+    geom_smooth(method = lm,
+              color = "grey60",
+              alpha = 0.3) +
+  geom_point(size = 2, alpha = 0.5, color = "darkorange") +
+  labs(x = "Average Defender Distance (ft)",
+       y = "Field Goal %") +
+  theme_classic()
+
+cor(summary_data$avg_defender,
+    summary_data$pct)
+```
+
+```{r, fig.height=4, fig.width=6}
+# Shot Clock vs. FG %
+
+ggplot(summary_data,
+       aes(x = avg_clock,
+           y = pct)) +
+    geom_smooth(method = lm,
+              color = "grey60",
+              alpha = 0.3) +
+  geom_point(size = 2, alpha = 0.5, color = "darkorange") +
+  labs(x = "Average Defender Distance (ft)",
+       y = "Field Goal %") +
+  theme_classic()
+
+cor(summary_data$avg_clock,
+    summary_data$pct)
+```
+
+## League-wide Shot Chart
+
+```{r, fig.height=6, fig.width=8}
+ggplot(data,
+       aes(x = x,
+           y = y)) +
+  geom_jitter(alpha = 0.3, aes(color = shot_outcome)) +
+  scale_color_manual(name = " ", 
+                     labels = c("Miss", "Make"), 
+                     values = c("0" = "palevioletred2", "1" = "deepskyblue")) + 
+  ggtitle("NBA Shot Chart") +
+  theme_classic()
+```
+
+
+## League-wide Density
+
+```{r, fig.height=6, fig.width=8}
+ggplot(data,
+       aes(x = x,
+           y = y)) +
+  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+  scale_fill_distiller(palette = "Spectral", direction = -1) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(legend.position='none') +
+  ggtitle("NBA Density Plot") +
+  theme_classic()
+```
+
+## Covariate Raster
+
+```{r}
+data_short <- data %>%
+  dplyr::select(shot_distance, dribbles,
+                defender_distance, shot_clock, shot_made_flag)
+
+pts <- SpatialPoints(c(data[ ,1], data[ ,2]))
+
+spData <- SpatialPointsDataFrame(pts, data = data_short)
+
+r <- raster(spData)
+res(r) <- 5
+f <- rasterize(spData, r)
+plot(f)
+```
+
+## Logistic Model
+
+```{r}
+model <- glm(shot_made_flag ~ shot_distance + dribbles + defender_distance + shot_clock, 
+             data = data, family = "binomial")
+
+summary(model)
+```
+
+```{r, results='asis'}
+kable(summary(model)$coef, digits = c(3, 3, 3, 4),
+"latex", booktabs=T)
+```
+
+```{r, results='asis'}
+stargazer(model, type = "latex", header=FALSE,
+title = "Logistic Regression: Explaining Field Goal Probability")
+```
+
+```{r}
+pred <- predict(model, data, type = "response")
+```
+
+```{r}
+data <- cbind(data, pred)
+```
+
+
+## Covariate Raster (new)
+
+```{r}
+data_short2 <- data %>%
+  dplyr::select(pred)
+
+spData2 <- SpatialPointsDataFrame(pts, data = data_short2)
+
+r2 <- raster(spData2)
+res(r2) <- 10
+f2 <- rasterize(spData2, r2)
+plot(f2)
+```
+
+
+## Summary Data (new)
+
+```{r}
+summary_data <- data %>%
+  group_by(name) %>%
+  summarize(avg_dist = mean(shot_distance),
+            avg_dribbles = mean(dribbles),
+            avg_touch_time = mean(touch_time),
+            avg_defender = mean(defender_distance),
+            avg_clock = mean(shot_clock),
+            fg = sum(shot_made_flag == 1),
+            fga = (sum(shot_made_flag == 0)) + sum(shot_made_flag == 1),
+            pct = fg/fga,
+            expct = mean(pred),
+            diff = pct - expct)
+
+summary_data <- summary_data %>%
+  filter(fga >= 100)
+
+summary_presentable <- summary_data %>%
+  dplyr::select(name, pct, expct, diff) %>%
+  mutate(pct = format(round(pct, 3), nsmall = 3),
+         expct = format(round(expct, 3), nsmall = 3),
+         diff = format(round(diff, 3), nsmall = 3))
+```
+
+
+
+## Summary Data (new)
+
+
+
+
+
+
+
+
+
