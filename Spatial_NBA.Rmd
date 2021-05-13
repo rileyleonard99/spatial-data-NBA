@@ -9,11 +9,12 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(sp)
-library(sf)
 library(raster)
 library(maptools)
 library(kableExtra)
 library(stargazer)
+library(spgwr)
+library(rgdal)
 ```
 
 ```{r}
@@ -354,7 +355,49 @@ summary_presentable <- summary_data %>%
 
 
 
-## Summary Data (new)
+## GWR
+
+```{r}
+set.seed(28)
+
+data_sample <- sample_n(data, 1000)
+
+data_sample_short <- data_sample %>%
+  dplyr::select(shot_distance, dribbles,
+                defender_distance, shot_clock, pred)
+
+coords <- data.frame(x = data_sample[ ,1], y = data_sample[ ,2])
+
+sample_pts <- SpatialPoints(coords)
+
+spSample <- SpatialPointsDataFrame(sample_pts, data = data_sample_short)
+
+r2 <- raster(spSample)
+res(r2) <- 5
+
+fitpoints <- rasterToPoints(r2)
+
+gwr.model <- gwr(pred ~ shot_distance + dribbles + defender_distance + shot_clock,
+                 data = spSample,
+                 longlat = FALSE,
+                 adapt = 0.1,
+                 fit.points = fitpoints)
+```
+
+```{r}
+sp <- gwr.model$SDF
+spplot(sp, 'sum.w')
+```
+
+```{r}
+cells <- cellFromXY(r, fitpoints)
+dd <- as.matrix(data.frame(sp))
+b <- brick(r, values = FALSE, nl = ncol(dd))
+b[cells] <- dd
+names(b) <- colnames(dd)
+plot(b)
+```
+
 
 
 
