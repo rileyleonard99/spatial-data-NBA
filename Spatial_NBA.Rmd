@@ -377,7 +377,7 @@ res(r2) <- 5
 
 fitpoints <- rasterToPoints(r2)
 
-gwr.model <- gwr(pred ~ shot_distance + dribbles + defender_distance + shot_clock,
+gwr.model <- gwr(pred ~ dribbles + defender_distance + shot_clock,
                  data = spSample,
                  longlat = FALSE,
                  adapt = 0.1,
@@ -390,9 +390,9 @@ spplot(sp, 'sum.w')
 ```
 
 ```{r}
-cells <- cellFromXY(r, fitpoints)
+cells <- cellFromXY(r2, fitpoints)
 dd <- as.matrix(data.frame(sp))
-b <- brick(r, values = FALSE, nl = ncol(dd))
+b <- brick(r2, values = FALSE, nl = ncol(dd))
 b[cells] <- dd
 names(b) <- colnames(dd)
 plot(b)
