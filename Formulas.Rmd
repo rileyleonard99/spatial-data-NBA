@@ -20,3 +20,7 @@ $eFG\% = \frac{FG + (0.5 \cdot 3P)}{FGA}$
 True Shooting Percentage:
 
 $TS\% = \frac{PTS}{2(FGA + (0.44 \cdot FTA))}$
+
+Logistic Regression:
+
+$ln\frac{p(x)}{1-p(x)} = \beta_1 + \beta_2x_1 + \beta_3x_2 + \beta_4x_3 + \beta_4x_5$
