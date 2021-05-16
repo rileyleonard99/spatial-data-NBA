@@ -1,2 +1,2 @@
-# spFG%: Using Spatial Data to Assess Player Efficiency
-Implmeneting NBA shot tracking data to generate a spatially-weighted shooting efficiency metric.
+Using Spatial Data to Assess Player Efficiency
+Implementing logistic regression and geographically-weighted regression on NBA shot tracking data to analyze shooting efficiency.
